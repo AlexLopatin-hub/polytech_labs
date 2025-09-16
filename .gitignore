@@ -42,3 +42,9 @@
 
 # Enviroment variables
 .env
+
+# some trash
+*.docx
+*.doc
+*.odt
+*.txt
