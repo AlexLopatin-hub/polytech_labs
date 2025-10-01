@@ -17,6 +17,7 @@ try:
         messages=[
             {"role": "system", "content": "You are C++ compiler. You only need to say what will be output of given code. No explanations."},
             {"role": "user", "content": code},
+            {"role": "user", "content": "replace objects prices with 100"},
         ]
     )
 except:

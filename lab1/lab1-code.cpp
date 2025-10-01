@@ -4,14 +4,14 @@
 class Deal
 {
 private:
-  int price;
-  int weight;
+  unsigned price;
+  unsigned weight;
   std::string company;
 public:
-  int gain() {
+  unsigned gain() {
     return price * weight;
   }
-  Deal(int init_price, int init_weight, std::string init_company)
+  Deal(unsigned  init_price, unsigned init_weight, std::string init_company)
       : price(init_price), weight(init_weight), company(init_company)
   {}
 };
@@ -28,9 +28,11 @@ int main()
   journal.push_back(deal2);
   journal.push_back(deal3);
 
-  int sum = 0;
+  unsigned sum = 0;
   for (Deal i : journal)
     sum += i.gain();
 
   std::cout << sum << std::endl;
+
+  return 0;
 }
