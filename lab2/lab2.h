@@ -69,6 +69,14 @@ public:
         return instance;
     }
 
+    void add_tariff(const Tariff& element) {
+        tariffs.push_back(element);
+    }
+
+    void add_client(const Client& element) {
+        clients.push_back(element);
+    }
+
     void push_back(const Order& element) {
         data_.push_back(element);
         size_++;
@@ -88,6 +96,22 @@ public:
             std::cout << "Заказов в данный момент нет" << std::endl;
     }
 
+    void list_clients() {
+        for (int i = 0; i < clients.size(); i++) {
+            std::cout << i+1 << ". " << clients[i].get_name() << std::endl;
+        }
+        if (clients.size() == 0)
+            std::cout << "Клиенотв нет" << std::endl;
+    }
+
+    void list_tariffs() {
+        for (int i = 0; i < tariffs.size(); i++) {
+            std::cout << i+1 << ". " << tariffs[i].get_name() << " — " << tariffs[i].get_cost(1) << std::endl;
+        }
+        if (tariffs.size() == 0)
+            std::cout << "Тарифов нет" << std::endl;
+    }
+
     float get_total_sum() {
         float sum = 0;
         for (Order order : data_) {
@@ -101,6 +125,8 @@ public:
 private:
     OrderMaster() {
         std::vector<Order> data_;
+        std::vector<Client> clients;
+        std::vector<Tariff> tariffs;
         size_t size = 0;
     }
     ~OrderMaster() {}
@@ -110,4 +136,7 @@ private:
 
     std::vector<Order> data_;
     size_t size_;
+
+    std::vector<Client> clients;
+    std::vector<Tariff> tariffs;
 };

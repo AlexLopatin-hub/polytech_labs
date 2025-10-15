@@ -10,19 +10,7 @@ unsigned order_id_counter = 0;
 void print_menu() {
     std::cout << "Панель управления заказами" << std::endl << "1. Создать заказ" << std::endl <<
         "2. Список заказов" << std::endl << "3. Список тарифов" << std::endl << "4. Список клиентов" <<
-        std::endl << "5. Добавить клиента" << std::endl << std::endl << "0. Выйти" << std::endl << std::endl;
-}
-
-void list_clients() {
-    for (int i = 0; i < clients.size(); i++) {
-        std::cout << i+1 << ". " << clients[i].get_name() << std::endl;
-    }
-}
-
-void list_tariffs() {
-    for (int i = 0; i < tariffs.size(); i++) {
-        std::cout << i+1 << ". " << tariffs[i].get_name() << std::endl;
-    }
+        std::endl << "5. Добавить клиента" << std::endl << "6. Добавить тариф" << std::endl << std::endl << "0. Выйти" << std::endl << std::endl;
 }
 
 int process_user_choice() {
@@ -63,14 +51,38 @@ float get_positive_number(int upper_limit = 1e9, bool is_integer = false) {
     return num;
 }
 
+void create_client() {
+    std::string client_name;
+    std::cout << "Введите имя клиента: ";
+    std::cin >> client_name;
+
+    Client client(0, client_name);
+    master.add_client(client);
+    return;
+}
+
+void create_tariff() {
+    std::string tariff_name;
+    std::cout << "Введите название тарифа: ";
+    std::cin >> tariff_name;
+
+    float rate;
+    std::cout << "Ввдеите ставку тарифа (за кг): ";
+    rate = get_positive_number();
+
+    Tariff tariff(rate, tariff_name);
+    master.add_tariff(tariff);
+    return;
+}
+
 unsigned create_order() {
     std::cout << "Выберите клиента:" << std::endl;
-    list_clients();
+    master.list_clients();
     int choice = get_positive_number(clients.size(), true);
     Client client = clients[choice - 1];
 
     std::cout << "Выюерите тариф" << std::endl;
-    list_tariffs();
+    master.list_tariffs();
     choice = get_positive_number(tariffs.size(), true);
     Tariff tariff = tariffs[choice - 1];
 
@@ -109,6 +121,32 @@ int main()
                 std::cout << "Нажмите Enter чтобы вернуться";
                 process_user_choice();
                 system("clear");
+                break;
+            case 3:
+                system("clear");
+                master.list_tariffs();
+                std::cout << "Нажмите Enter чтобы вернуться";
+                process_user_choice();
+                system("clear");
+                break;
+            case 4:
+                system("clear");
+                master.list_clients();
+                std::cout << "Нажмите Enter чтобы вернуться";
+                process_user_choice();
+                system("clear");
+                break;
+            case 5:
+                system("clear");
+                create_client();
+                system("clear");
+                std::cout << "Клиент добавлен" << std::endl;
+                break;
+            case 6:
+                system("clear");
+                create_tariff();
+                system("clear");
+                std::cout << "Тариф добавлен" << std::endl;
                 break;
             default:
                 wrong_input = true;
