@@ -50,6 +50,7 @@ public:
             << "Status: " << static_cast<int>(status) << std::endl << std::endl;
     }
     float get_cost() { return total_cost; }
+    Client get_client() { return client; }
 
     Order(unsigned init_id, Client init_client, Tariff init_tariff, float init_mass)
         : id(init_id), client(init_client), tariff(init_tariff), mass(init_mass)
@@ -88,6 +89,20 @@ public:
         return data_[index];
     }
 
+    Client get_client(int num) {
+        if (num >= clients.size()) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return clients[num];
+    }
+
+    Tariff get_tariff(int num) {
+        if (num >= tariffs.size()) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return tariffs[num];
+    }
+
     void list_orders() {
         if (size_ > 0)
             for (Order order : data_)
@@ -120,7 +135,17 @@ public:
         return sum;
     }
 
+    float get_client_sum(Client target_client) {
+        float sum = 0;
+         for (Order order : data_)
+            if (order.get_client().get_name() == target_client.get_name())
+                sum += order.get_cost();
+        return sum;
+    }
+
     size_t size() { return size_; }
+    size_t clients_count() { return clients.size(); }
+    size_t tariffs_count() { return tariffs.size(); }
 
 private:
     OrderMaster() {

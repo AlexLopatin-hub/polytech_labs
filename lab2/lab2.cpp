@@ -2,7 +2,6 @@
 #include <limits>
 #include <cmath>
 #include "lab2.h"
-#include "tariffs&clients.h"
 
 OrderMaster& master = OrderMaster::Instance();
 unsigned order_id_counter = 0;
@@ -10,7 +9,9 @@ unsigned order_id_counter = 0;
 void print_menu() {
     std::cout << "Панель управления заказами" << std::endl << "1. Создать заказ" << std::endl <<
         "2. Список заказов" << std::endl << "3. Список тарифов" << std::endl << "4. Список клиентов" <<
-        std::endl << "5. Добавить клиента" << std::endl << "6. Добавить тариф" << std::endl << std::endl << "0. Выйти" << std::endl << std::endl;
+        std::endl << "5. Добавить клиента" << std::endl << "6. Добавить тариф"<< std::endl  <<
+        "7. Вывести сумму заказов для клиента" << std::endl << "8. Вывести сумму всех заказов" <<
+        std::endl << std::endl << "0. Выйти" << std::endl << std::endl;
 }
 
 int process_user_choice() {
@@ -78,13 +79,13 @@ void create_tariff() {
 unsigned create_order() {
     std::cout << "Выберите клиента:" << std::endl;
     master.list_clients();
-    int choice = get_positive_number(clients.size(), true);
-    Client client = clients[choice - 1];
+    int choice = get_positive_number(master.clients_count(), true);
+    Client client = master.get_client(choice - 1);
 
     std::cout << "Выюерите тариф" << std::endl;
     master.list_tariffs();
-    choice = get_positive_number(tariffs.size(), true);
-    Tariff tariff = tariffs[choice - 1];
+    choice = get_positive_number(master.tariffs_count(), true);
+    Tariff tariff = master.get_tariff(choice - 1);
 
     std::cout << "Введите массу перевозимого груза: ";
     float mass = get_positive_number();
@@ -96,6 +97,21 @@ unsigned create_order() {
     return id;
 }
 
+void get_client_sum() {
+    std::cout << "Выберите клиента:" << std::endl;
+    master.list_clients();
+    if (master.clients_count() == 0) { return; }
+    int choice = get_positive_number(master.clients_count(), true);
+    Client client = master.get_client(choice - 1);
+    float sum = 0;
+    sum = master.get_client_sum(client);
+    std::cout << "Сумма заказов для клиента " << client.get_name() << " равна " << sum << std::endl << std::endl;
+}
+
+void get_total_sum() {
+    float sum = master.get_total_sum();
+    std::cout << "Общая сумма всех заказов равна " << sum << std::endl << std::endl;
+}
 
 int main()
 {
@@ -147,6 +163,20 @@ int main()
                 create_tariff();
                 system("clear");
                 std::cout << "Тариф добавлен" << std::endl;
+                break;
+            case 7:
+                system("clear");
+                get_client_sum();
+                std::cout << "Нажмите Enter чтобы вернуться";
+                process_user_choice();
+                system("clear");
+                break;
+            case 8:
+                system("clear");
+                get_total_sum();
+                std::cout << "Нажмите Enter чтобы вернуться";
+                process_user_choice();
+                system("clear");
                 break;
             default:
                 wrong_input = true;
