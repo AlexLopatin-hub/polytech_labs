@@ -4,7 +4,7 @@
 #include "lab2.h"
 
 OrderMaster& master = OrderMaster::Instance();
-unsigned order_id_counter = 0;
+unsigned order_id_counter = 1;
 
 void print_menu() {
     std::cout << "Панель управления заказами" << std::endl << "1. Создать заказ" << std::endl <<
@@ -36,11 +36,11 @@ float get_positive_number(int upper_limit = 1e9, bool is_integer = false) {
             continue;
         }
         else if (num <= 0) {
-            std::cout << "Чилсо должно быть неотрицательным" << std::endl;
+            std::cout << "Число должно быть неотрицательным" << std::endl;
             continue;
         }
         else if (num > upper_limit) {
-            std::cout << "Чилсо должно быть не больше, чем " << upper_limit << std::endl;
+            std::cout << "Число должно быть не больше, чем " << upper_limit << std::endl;
             continue;
         }
         else if (is_integer && num != round(num)) {
@@ -77,12 +77,23 @@ void create_tariff() {
 }
 
 unsigned create_order() {
+    if (master.clients_count() == 0) {
+        std::cout << "Нет клиентов. Нажмите Enter чтобы вернуться" << std::endl;
+        process_user_choice();
+        return -1;
+    }
+    if (master.tariffs_count() == 0) {
+        std::cout << "Нет тарифов. Нажмите Enter чтобы вернуться" << std::endl;
+        process_user_choice();
+        return -1;
+    }
+
     std::cout << "Выберите клиента:" << std::endl;
     master.list_clients();
     int choice = get_positive_number(master.clients_count(), true);
     Client client = master.get_client(choice - 1);
 
-    std::cout << "Выюерите тариф" << std::endl;
+    std::cout << "Выберите тариф" << std::endl;
     master.list_tariffs();
     choice = get_positive_number(master.tariffs_count(), true);
     Tariff tariff = master.get_tariff(choice - 1);
@@ -129,7 +140,11 @@ int main()
                 system("clear");
                 order_id = create_order();
                 system("clear");
-                std::cout << "Заказ создан. ID заказа: " << order_id << std::endl;
+                if (order_id == -1) {
+                    std::cout << "Ошибка создания заказа" << std::endl;
+                } else {
+                    std::cout << "Заказ создан. ID заказа: " << order_id << std::endl;
+                }
                 break;
             case 2:
                 system("clear");
