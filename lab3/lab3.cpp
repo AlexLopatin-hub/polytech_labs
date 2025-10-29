@@ -78,7 +78,7 @@ void create_tariff() {
     std::cout << "Ввдеите ставку тарифа (за кг): ";
     rate = get_positive_number();
 
-    std::shared_ptr<ITariff> tariff = Tariff(rate, tariff_name);
+    Tariff tariff(rate, tariff_name);
     master.add_tariff(tariff);
     return;
 }
