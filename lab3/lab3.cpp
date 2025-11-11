@@ -1,24 +1,23 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
-#include <memory>
 #include "lab3.h"
 
 OrderMaster& master = OrderMaster::Instance();
-unsigned order_id_counter = 0;
+unsigned order_id_counter = 1;
 
 void print_menu() {
     std::cout << "Панель управления заказами" << std::endl <<
-        "1. Создать заказ" << std::endl <<
-        "2. Список заказов" << std::endl <<
-        "3. Список тарифов" << std::endl <<
-        "4. Список клиентов" << std::endl <<
-        "5. Добавить клиента" << std::endl <<
-        "6. Добавить тариф"<< std::endl <<
-        "7. Вывести сумму заказов для клиента" << std::endl <<
-        "8. Вывести сумму всех заказов" << std::endl <<
-        "9. Найти самый дешёвый тариф " << std::endl << std::endl <<
-        "0. Выйти" << std::endl << std::endl;
+    "1. Создать заказ" << std::endl <<
+    "2. Список заказов" << std::endl <<
+    "3. Список тарифов" << std::endl <<
+    "4. Список клиентов" << std::endl <<
+    "5. Добавить клиента" << std::endl <<
+    "6. Добавить тариф"<< std::endl <<
+    "7. Вывести сумму заказов для клиента" << std::endl <<
+    "8. Вывести сумму всех заказов" << std::endl <<
+    "9. Найти самый дешёвый тариф " << std::endl << std::endl <<
+    "0. Выйти" << std::endl << std::endl;
 }
 
 int process_user_choice() {
@@ -42,12 +41,12 @@ float get_positive_number(int upper_limit = 1e9, bool is_integer = false) {
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             continue;
         }
-        else if (num <= 0) {
-            std::cout << "Чилсо должно быть неотрицательным" << std::endl;
+        else if (num < 0) {
+            std::cout << "Число должно быть неотрицательным" << std::endl;
             continue;
         }
         else if (num > upper_limit) {
-            std::cout << "Чилсо должно быть не больше, чем " << upper_limit << std::endl;
+            std::cout << "Число должно быть не больше, чем " << upper_limit << std::endl;
             continue;
         }
         else if (is_integer && num != round(num)) {
@@ -78,21 +77,36 @@ void create_tariff() {
     std::cout << "Ввдеите ставку тарифа (за кг): ";
     rate = get_positive_number();
 
-    Tariff tariff(rate, tariff_name);
+    float discount;
+    std::cout << "Ввдеите скидку, предоставляемую на тариф (если скидка не предоставляется, то введите 0): ";
+    discount = get_positive_number(100);
+
+    Tariff tariff(rate, tariff_name, discount);
     master.add_tariff(tariff);
     return;
 }
 
 unsigned create_order() {
+    if (master.clients_count() == 0) {
+        std::cout << "Нет клиентов. Нажмите Enter чтобы вернуться" << std::endl;
+        process_user_choice();
+        return -1;
+    }
+    if (master.tariffs_count() == 0) {
+        std::cout << "Нет тарифов. Нажмите Enter чтобы вернуться" << std::endl;
+        process_user_choice();
+        return -1;
+    }
+
     std::cout << "Выберите клиента:" << std::endl;
     master.list_clients();
     int choice = get_positive_number(master.clients_count(), true);
     Client client = master.get_client(choice - 1);
 
-    std::cout << "Выюерите тариф" << std::endl;
+    std::cout << "Выберите тариф" << std::endl;
     master.list_tariffs();
     choice = get_positive_number(master.tariffs_count(), true);
-    std::shared_ptr<ITariff> tariff = master.get_tariff(choice - 1);
+    Tariff tariff = master.get_tariff(choice - 1);
 
     std::cout << "Введите массу перевозимого груза: ";
     float mass = get_positive_number();
@@ -121,10 +135,10 @@ void get_total_sum() {
 }
 
 void find_cheapest_tariff() {
-    std::shared_ptr<ITariff> cheapest = master.findCheapestTariff();
+    Tariff* cheapest = master.findCheapestTariff();
     if (cheapest) {
         std::cout << "Самый дешёвый тариф: " << cheapest->get_name()
-            << " по ставке " << cheapest->get_cost() << " за кг." << std::endl;
+        << " по ставке " << cheapest->get_cost() << " за кг." << std::endl;
     } else {
         std::cout << "Тарифов нет." << std::endl;
     }

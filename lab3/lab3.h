@@ -4,38 +4,53 @@
 #include <vector>
 
 
-class ITariff {
+class IDiscount {
 public:
-    virtual float get_cost(float mass = 1) const = 0;
+    virtual float get_rate(float base_rate) const = 0;
 
-    virtual std::string get_name() const = 0;
-
-    virtual ~ITariff() = default;
+    virtual ~IDiscount() = default;
 };
 
-class Tariff : public ITariff {
-protected:
-    float rate;
-    std::string name;
+class NoDiscount : public IDiscount {
 public:
-    float get_cost(float mass = 1) const override {
-        return mass * rate;
+    float get_rate(float base_rate) const override {
+        return base_rate;
     }
-    std::string get_name() const override {
+};
+
+class Discount : public IDiscount {
+private:
+    float discount_percent;
+public:
+    float get_rate(float base_rate) const override {
+        return base_rate * (1.0 - discount_percent / 100.0);
+    }
+
+    Discount(float init_discount_percent) : discount_percent(init_discount_percent) {}
+};
+
+class Tariff {
+private:
+    float base_rate;
+    std::string name;
+    IDiscount* discount = nullptr;
+public:
+    float get_cost(float mass = 1) {
+        if (!discount) {
+            return mass * base_rate;
+        }
+        return mass * discount->get_rate(base_rate);
+    }
+    std::string get_name() {
         return name;
     }
-    Tariff(float init_rate, std::string init_name) : rate(init_rate), name(init_name) {}
-};
-
-class DiscountTariff : public Tariff {
-private:
-    float discount_rate;
-public:
-    float get_cost(float mass = 1) const override {
-        return mass * rate * (1 - discount_rate / 100.0);
+    Tariff(float init_rate, std::string init_name, float init_discount) : base_rate(init_rate), name(init_name) {
+        if (init_discount > 0) {
+            discount = new Discount(init_discount);
+        } else {
+            discount = new NoDiscount();
+        }
     }
-    DiscountTariff(float init_rate, std::string init_name, float init_discount_rate)
-        : Tariff(init_rate, init_name), discount_rate(init_discount_rate) {}
 };
 
 class Client {
@@ -59,7 +74,7 @@ class Order {
 private:
     unsigned id;
     Client client;
-    std::shared_ptr<ITariff> tariff;
+    Tariff tariff;
     float mass;
     float total_cost;
 public:
@@ -67,17 +82,17 @@ public:
 
     void list_info() {
         std::cout << std::endl << "Order ID: " << id << std::endl << "Client: " << client.get_name() << std::endl
-            << "Tariff: " << tariff->get_name() << std::endl << "Mass: " << mass << std::endl << "Total cost: " << total_cost << std::endl
-            << "Status: " << static_cast<int>(status) << std::endl << std::endl;
+        << "Tariff: " << tariff.get_name() << std::endl << "Mass: " << mass << std::endl << "Total cost: " << total_cost << std::endl
+        << "Status: " << static_cast<int>(status) << std::endl << std::endl;
     }
     float get_cost() { return total_cost; }
     Client get_client() { return client; }
 
-    Order(unsigned init_id, Client init_client, std::shared_ptr<ITariff> init_tariff, float init_mass)
-        : id(init_id), client(init_client), tariff(init_tariff), mass(init_mass)
+    Order(unsigned init_id, Client init_client, Tariff init_tariff, float init_mass)
+    : id(init_id), client(init_client), tariff(init_tariff), mass(init_mass)
     {
         status = OrderStatus::Created;
-        total_cost = tariff->get_cost(mass);
+        total_cost = tariff.get_cost(mass);
     }
     ~Order() {
         std::cout << "log: order " << id << " deleted" << std::endl;
@@ -85,13 +100,31 @@ public:
 };
 
 class OrderMaster {
+private:
+    OrderMaster() {
+        std::vector<Order> data_;
+        std::vector<Client> clients;
+        std::vector<Tariff> tariffs;
+        size_t size = 0;
+    }
+    ~OrderMaster() {}
+
+    OrderMaster(OrderMaster const&) = delete;
+    OrderMaster& operator= (OrderMaster const&) = delete;
+
+    std::vector<Order> data_;
+    size_t size_;
+
+    std::vector<Client> clients;
+    std::vector<Tariff> tariffs;
+
 public:
     static OrderMaster& Instance() {
         static OrderMaster instance;
         return instance;
     }
 
-    void add_tariff(const std::shared_ptr<ITariff>& element) {
+    void add_tariff(const Tariff& element) {
         tariffs.push_back(element);
     }
 
@@ -117,7 +150,7 @@ public:
         return clients[num];
     }
 
-    std::shared_ptr<ITariff> get_tariff(int num) {
+    Tariff get_tariff(int num) {
         if (num >= tariffs.size()) {
             throw std::out_of_range("Index out of bounds");
         }
@@ -142,21 +175,10 @@ public:
 
     void list_tariffs() {
         for (int i = 0; i < tariffs.size(); i++) {
-            std::cout << i+1 << ". " << tariffs[i]->get_name() << " — " << tariffs[i]->get_cost(1) << std::endl;
+            std::cout << i+1 << ". " << tariffs[i].get_name() << " — " << tariffs[i].get_cost(1) << std::endl;
         }
         if (tariffs.size() == 0)
             std::cout << "Тарифов нет" << std::endl;
-    }
-
-    std::shared_ptr<ITariff> findCheapestTariff() const {
-        if (tariffs.empty()) return nullptr;
-
-        std::shared_ptr<ITariff> cheapest = tariffs[0];
-        for (const auto& t : tariffs)
-            if (t->get_cost() < cheapest->get_cost())
-                cheapest = t;
-
-        return cheapest;
     }
 
     float get_total_sum() {
@@ -167,9 +189,20 @@ public:
         return sum;
     }
 
+    Tariff* findCheapestTariff() {
+        if (tariffs.empty()) return nullptr;
+
+        Tariff* cheapest = &tariffs[0];
+        for (auto& t : tariffs)
+            if (t.get_cost() < cheapest->get_cost())
+                cheapest = &t;
+
+        return cheapest;
+    }
+
     float get_client_sum(Client target_client) {
         float sum = 0;
-         for (Order order : data_)
+        for (Order order : data_)
             if (order.get_client().get_name() == target_client.get_name())
                 sum += order.get_cost();
         return sum;
@@ -178,22 +211,4 @@ public:
     size_t size() { return size_; }
     size_t clients_count() { return clients.size(); }
     size_t tariffs_count() { return tariffs.size(); }
-
-private:
-    OrderMaster() {
-        std::vector<Order> data_;
-        std::vector<Client> clients;
-        std::vector<std::shared_ptr<ITariff>> tariffs;
-        size_t size = 0;
-    }
-    ~OrderMaster() {}
-
-    OrderMaster(OrderMaster const&) = delete;
-    OrderMaster& operator= (OrderMaster const&) = delete;
-
-    std::vector<Order> data_;
-    size_t size_;
-
-    std::vector<Client> clients;
-    std::vector<std::shared_ptr<ITariff>> tariffs;
 };
