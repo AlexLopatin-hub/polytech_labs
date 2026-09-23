@@ -14,7 +14,7 @@ public class Plant extends Agent {
 
     @Override
     public void act(Environment env) {
-        changeEnergy(1);
+        changeEnergy(2);
         if (getEnergy() <= 0) {
             die();
         }

@@ -12,7 +12,7 @@ import java.awt.*;
 
 public class GridPanel extends JPanel {
 
-    private static final int CELL_SIZE = 18;
+    private static final int CELL_SIZE = 12;
 
     private static final Color BG_EMPTY   = new Color(30, 30, 30);
     private static final Color GRID_LINE  = new Color(50, 50, 50);

@@ -15,7 +15,7 @@ public class ControlPanel extends JPanel {
     private final JButton startPauseButton = new JButton("Старт");
     private final JButton stepButton = new JButton("Шаг");
     private final JButton resetButton = new JButton("Перезапуск");
-    private final JSlider speedSlider = new JSlider(10, 1000, 200); // мс задержки между тиками
+    private final JSlider speedSlider = new JSlider(1, 100, 1);
     private final JLabel tickLabel = new JLabel("Шаг: 0");
     private final JLabel plantsLabel = new JLabel("Растения: 0");
     private final JLabel herbivoresLabel = new JLabel("Травоядные: 0");
@@ -32,8 +32,8 @@ public class ControlPanel extends JPanel {
         add(buttons);
 
         JPanel speedPanel = new JPanel(new BorderLayout(8, 0));
-        speedPanel.add(new JLabel("Скорость (мс/шаг):"), BorderLayout.WEST);
-        speedSlider.setMajorTickSpacing(200);
+        speedPanel.add(new JLabel("Скорость (шагов/с):"), BorderLayout.WEST);
+        speedSlider.setMajorTickSpacing(10);
         speedSlider.setPaintTicks(true);
         speedPanel.add(speedSlider, BorderLayout.CENTER);
         add(speedPanel);
@@ -67,7 +67,6 @@ public class ControlPanel extends JPanel {
         startPauseButton.setText(running ? "Пауза" : "Старт");
     }
 
-    /** Обновить счётчики популяции по текущему списку агентов среды. */
     public void updateStats(int tick, List<Agent> agents) {
         long plants = agents.stream().filter(a -> a instanceof Plant).count();
         long herbivores = agents.stream().filter(a -> a instanceof Herbivore).count();

@@ -1,0 +1,156 @@
+@startuml
+class Environment {
+    +width : int
+    +height : int
+    +tickTime : int
+    -map : Agent[][]
+    -agents : ArrayList<Agent>
+    
+    -void trySpawn(agent : Agent)
+    -boolean inBounds(x : int, y : int)
+    +Agent[][] getMap()
+    +ArrayList<Agent> getAgents()
+    +Agent getAgentByCoords()
+    +boolean moveAgent(agent : MobileAgent, dir : Direction)
+    +Cell[][] getVisionField(agent : Agent, radius : int)
+    +void removeDead()
+    +void spawnNewAgents()
+    +void tick()
+}
+
+record Config {
+    tickTime : int
+    width : int
+    height : int
+    plantsCount : int
+    herbivoresCount : int
+    predatorsCount : int
+}
+
+enum Direction {
+    UP
+    DOWN
+    RIGHT
+    LEFT
+}
+
+enum CellContent {
+    EMPTY
+    PLANT
+    HERBIVORE
+    PREDATOR
+    OUT_OF_BOUNDS
+    
+    {static} CellContent contentOf()
+}
+
+record Cell {
+    +{static} int getManhattanDistance(x1 : int, y1 : int, x2 : int, y2 : int)
+}
+
+abstract class Agent {
+    -alive : boolean;
+    #x : int;
+    #y : int;
+    #int energy = 15;
+    +{static} energyLimit : int;
+    +{static} offspringCost : int;
+
+    +int getX()
+    +int getY()
+    +int getEnergy()
+    +void changeEnergy(delta : int)
+    +boolean isAlive()
+    +void die()
+    +{abstract} Agent makeOffspring(x : int, y : int);
+    +{abstract} void act(env : Environment);
+}
+
+class Plant {
+    +Agent makeOffspring(x : int, y : int)
+    +void act(env : Environment)
+}
+
+abstract class MobileAgent {
+    #{abstract} boolean tryEat(env : Environment, victim Agent)
+    +{abstract} Direction decideMove(visionField : Cell[][])
+    #Direction defineDirection (xStart : int, yStart : int, xDest : int, yDest : int)
+    +void setPosition(x: int, y : int)
+    +boolean eat(env Environment)
+    +void act(env : Environment)
+}
+
+class Herbivore {
+    +boolean tryEat(env : Environment, victim : Agent)
+    +Agent makeOffspring(x : int, y : int)
+    +Direction decideMove(visionField : Cell[][])
+}
+
+class Predator {
+    +boolean tryEat(env : Environment, victim : Agent)
+    +Agent makeOffspring(x : int, y : int)
+    +Direction decideMove(visionField : Cell[][])
+}
+
+class ConsoleRenderer {
+    -char symbolFor(agent : Agent)
+    +void render(env : Environment)
+}
+
+package ui {
+
+    class GridPanel {
+        -{static} int CELL_SIZE
+        -env : Environment
+        +void setEnvironment(env : Environment)
+        #void paintComponent(g : Graphics)
+        -Color colorFor(agent : Agent)
+    }
+
+    class ControlPanel {
+        -startPauseButton : JButton
+        -stepButton : JButton
+        -resetButton : JButton
+        -speedSlider : JSlider
+        +void onStartPause(action : Runnable)
+        +void onStep(action : Runnable)
+        +void onReset(action : Runnable)
+        +void onSpeedChange(action : IntConsumer)
+        +void setRunningLabel(running : boolean)
+        +void updateStats(tick : int, agents : List<Agent>)
+    }
+
+    class MainFrame {
+        -config : Config
+        -env : Environment
+        -gridPanel : GridPanel
+        -controlPanel : ControlPanel
+        -timer : Timer
+        -tickCount : int
+        -running : boolean
+        -void wireControls()
+        -void stepOnce()
+        +{static} void main(args : String[])
+    }
+}
+
+Cell *-- CellContent
+Environment --> Config
+Environment --> Agent
+Environment --> Cell
+ConsoleRenderer --> Environment
+Agent <|-- Plant
+Agent <|-- MobileAgent
+MobileAgent <|-- Herbivore
+MobileAgent <|-- Predator
+MobileAgent --> Direction
+
+MainFrame *-- GridPanel
+MainFrame *-- ControlPanel
+MainFrame --> Environment
+MainFrame --> Config
+GridPanel --> Environment
+GridPanel --> Agent
+ControlPanel --> Agent
+
+@enduml

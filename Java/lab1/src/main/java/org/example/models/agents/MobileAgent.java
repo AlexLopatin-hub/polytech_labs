@@ -31,6 +31,9 @@ public abstract class MobileAgent extends Agent {
         Cell[][] visionField = env.getVisionField(this, visionRadius);
         for (int x = 0; x < visionField.length; x++) {
             for (int y = 0; y < visionField[x].length; y++) {
+                if (Cell.getManhattanDistance(x, y, visionRadius, visionRadius) != 1) {
+                    continue;
+                }
                 if (
                     visionField[x][y].content() != CellContent.OUT_OF_BOUNDS
                     && visionField[x][y].content() != CellContent.EMPTY

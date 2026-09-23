@@ -5,6 +5,7 @@ import org.example.models.enums.CellContent;
 import org.example.models.enums.Direction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class Environment {
@@ -141,11 +142,23 @@ public class Environment {
     }
 
     public void tick() {
-        for (Agent agent : this.agents) {
+        // ход хищников
+        for (Agent agent : this.agents.stream()
+                .filter(a -> a instanceof Predator)
+                .toArray(Agent[]::new)) {
             if (agent.isAlive()) {
                 agent.act(this);
             }
         }
+        // ход остальных агентов
+        for (Agent agent : this.agents.stream()
+                .filter(a -> !(a instanceof Predator))
+                .toArray(Agent[]::new)) {
+            if (agent.isAlive()) {
+                agent.act(this);
+            }
+        }
+
         removeDead();
         spawnNewAgents();
     }

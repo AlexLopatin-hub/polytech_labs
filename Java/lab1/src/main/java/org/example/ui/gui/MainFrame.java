@@ -63,7 +63,7 @@ public class MainFrame extends JFrame {
             gridPanel.repaint();
         });
 
-        controlPanel.onSpeedChange(timer::setDelay);
+        controlPanel.onSpeedChange(stepsPerSecond -> timer.setDelay(1000 / stepsPerSecond));
 
         controlPanel.updateStats(tickCount, env.getAgents());
     }
@@ -78,7 +78,10 @@ public class MainFrame extends JFrame {
             timer.stop();
             running = false;
             controlPanel.setRunningLabel(false);
-            JOptionPane.showMessageDialog(this, "Все агенты вымерли на шаге " + tickCount);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Все агенты вымерли на шаге " + tickCount
+            );
         }
     }
 }

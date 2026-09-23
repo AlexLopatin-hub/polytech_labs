@@ -28,7 +28,8 @@ public class Herbivore extends MobileAgent {
         boolean plantInSight = false;
         int closestPlantDist = Integer.MAX_VALUE;
         Direction direction = null;
-        int centerX = 2, centerY = 2;
+        int centerX = visionField.length / 2,
+            centerY = visionField[0].length / 2;
 
         for (int x = 0; x < visionField.length; x++) {
             for (int y = 0; y < visionField[x].length; y++) {
