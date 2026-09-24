@@ -12,9 +12,9 @@ public abstract class Agent {
     private boolean alive = true;
     protected int x;
     protected int y;
-    protected int energy = 15;
-    public static int energyLimit = 30;
-    public static int offspringCost = 10;
+    protected int energy = 25;
+    public static int energyLimit = 50;
+    public static int offspringCost = 25;
 
 
     public int getX() { return this.x; }

@@ -82,6 +82,20 @@ public class Environment {
         }
     }
 
+    private void spawnPlants(int count) {
+        Random random = new Random();
+        for (int i = 0; i <= count; i++) {
+            int x = random.nextInt(0, this.width);
+            int y = random.nextInt(0, this.height);
+
+            if (map[x][y] == null) {
+                Agent plant = new Plant(x, y);
+                this.map[x][y] = plant;
+                this.agents.add(plant);
+            }
+        }
+    }
+
     public Agent[][] getMap() { return map; }
 
     public ArrayList<Agent> getAgents() { return agents; }
@@ -89,6 +103,8 @@ public class Environment {
     public Agent getAgentByCoords(int x, int y) { return map[x][y]; }
 
     public boolean moveAgent(MobileAgent agent, Direction dir) {
+        if (dir == null) { return false; }
+
         int newX = agent.getX() + dir.dx;
         int newY = agent.getY() + dir.dy;
 
@@ -159,5 +175,6 @@ public class Environment {
 
         removeDead();
         spawnNewAgents();
+        spawnPlants(10);
     }
 }

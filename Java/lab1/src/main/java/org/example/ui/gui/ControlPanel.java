@@ -15,7 +15,7 @@ public class ControlPanel extends JPanel {
     private final JButton startPauseButton = new JButton("Старт");
     private final JButton stepButton = new JButton("Шаг");
     private final JButton resetButton = new JButton("Перезапуск");
-    private final JSlider speedSlider = new JSlider(1, 100, 1);
+    private final JSlider speedSlider = new JSlider(1, 100, 10);
     private final JLabel tickLabel = new JLabel("Шаг: 0");
     private final JLabel plantsLabel = new JLabel("Растения: 0");
     private final JLabel herbivoresLabel = new JLabel("Травоядные: 0");

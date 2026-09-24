@@ -51,20 +51,19 @@ public abstract class MobileAgent extends Agent {
     }
 
     public void act(Environment env) {
-        boolean ok = eat(env);
-        if (ok) {
-            return;
-        }
-
-        changeEnergy(-1);
-        if (getEnergy() <= 0) {
-            die();
-            return;
-        }
-
         int visionRadius = 2;
         Cell[][] visionField = env.getVisionField(this, visionRadius);
         Direction direction = decideMove(visionField);
-        env.moveAgent(this, direction);
+        boolean ok = env.moveAgent(this, direction);
+        if (ok) {
+            changeEnergy(-1);
+            if (getEnergy() <= 0) { die(); }
+            return;
+        }
+
+        ok = eat(env);
+        if (ok) {
+            return;
+        }
     }
 }

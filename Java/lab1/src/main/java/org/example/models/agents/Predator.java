@@ -13,7 +13,7 @@ public class Predator extends MobileAgent {
     @Override
     protected boolean tryEat(Environment env, Agent victim) {
         if (victim instanceof Herbivore) {
-            changeEnergy(5);
+            changeEnergy(11);
             victim.die();
             return true;
         }
@@ -49,6 +49,7 @@ public class Predator extends MobileAgent {
 
         }
 
+        if (closestDist == 1) { return null; }
         if (herbivoreInSight) { return direction; }
         return Direction.random();
     }

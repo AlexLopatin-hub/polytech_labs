@@ -11,12 +11,12 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         Config config = new Config(
-                1000,
-            50,
-            50,
-            400,
-            80,
-            45
+                100,
+            60,
+            60,
+            500,
+            200,
+            100
         );
 
         SwingUtilities.invokeLater(() -> new MainFrame(config).setVisible(true));

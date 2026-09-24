@@ -10,7 +10,7 @@ public class Herbivore extends MobileAgent {
     @Override
     protected boolean tryEat(Environment env, Agent victim) {
         if (victim instanceof Plant) {
-            changeEnergy(5);
+            changeEnergy(10);
             victim.die();
             return true;
         }
