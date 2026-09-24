@@ -1,6 +1,5 @@
 package org.example.models.agents;
 
-import org.example.models.enums.Direction;
 import org.example.models.environment.Cell;
 import org.example.models.environment.Environment;
 

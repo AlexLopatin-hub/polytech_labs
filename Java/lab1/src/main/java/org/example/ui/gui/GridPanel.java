@@ -59,9 +59,9 @@ public class GridPanel extends JPanel {
 
     private Color colorFor(Agent agent) {
         return switch (agent) {
-            case Plant plant -> COLOR_PLANT;
-            case Herbivore herbivore -> COLOR_HERBIVORE;
-            case Predator predator -> COLOR_PREDATOR;
+            case Plant ignored -> COLOR_PLANT;
+            case Herbivore ignored -> COLOR_HERBIVORE;
+            case Predator ignored -> COLOR_PREDATOR;
             case null, default -> BG_EMPTY;
         };
     }

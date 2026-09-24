@@ -1,4 +1,4 @@
-package org.example.models.enums;
+package org.example.models.environment;
 
 import org.example.models.agents.Agent;
 import org.example.models.agents.Herbivore;

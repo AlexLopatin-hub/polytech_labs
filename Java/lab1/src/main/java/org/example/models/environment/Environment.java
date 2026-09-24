@@ -1,11 +1,9 @@
 package org.example.models.environment;
 
 import org.example.models.agents.*;
-import org.example.models.enums.CellContent;
-import org.example.models.enums.Direction;
+import org.example.models.agents.Direction;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 public class Environment {
