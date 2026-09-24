@@ -1,0 +1,57 @@
+@startuml ComponentDiagram
+package "org.example" {
+  [Main]
+}
+
+package "org.example.models.agents" {
+  [Agent]
+  [MobileAgent]
+  [Plant]
+  [Herbivore]
+  [Predator]
+  [Direction]
+}
+
+package "org.example.models.environment" {
+  [Environment]
+  [Cell]
+  [CellContent]
+  [Config]
+}
+
+package "org.example.ui.console" {
+  [ConsoleRenderer]
+}
+
+package "org.example.ui.gui" {
+  [MainFrame]
+  [GridPanel]
+  [ControlPanel]
+}
+
+[Main] --> [Config]
+[Main] --> [MainFrame]
+[Main] ..> [Environment] : альтернативный\nконсольный режим
+[Main] ..> [ConsoleRenderer] : альтернативный\nконсольный режим
+
+[MainFrame] --> [Environment]
+[MainFrame] --> [GridPanel]
+[MainFrame] --> [ControlPanel]
+[GridPanel] --> [Environment]
+[ControlPanel] ..> [Agent] : отображает\nстатистику по типам
+
+[Environment] --> [Agent]
+[Environment] --> [Cell]
+[Environment] --> [CellContent]
+[Environment] --> [Config]
+[Environment] --> [Direction]
+
+[MobileAgent] --|> [Agent]
+[Plant] --|> [Agent]
+[Herbivore] --|> [MobileAgent]
+[Predator] --|> [MobileAgent]
+
+[CellContent] ..> [Agent] : contentOf(agent)
+
+[ConsoleRenderer] --> [Environment]
+@enduml

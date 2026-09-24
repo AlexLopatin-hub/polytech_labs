@@ -1,0 +1,50 @@
+@startuml ActivityDiagram
+start
+:Environment.tick();
+
+partition "Ход хищников (Predator)" {
+  while (есть необработанный\nхищник?) is (да)
+    if (агент жив?) then (да)
+      :eat(env);
+      if (удалось съесть\nжертву?) then (нет)
+        :changeEnergy(-1);
+        if (energy <= 0?) then (да)
+          :die();
+        else (нет)
+          :getVisionField(radius=2);
+          :decideMove(visionField);
+          :moveAgent(agent, direction);
+        endif
+      endif
+    endif
+  endwhile (нет)
+}
+
+partition "Ход остальных агентов\n(Plant, Herbivore)" {
+  while (есть необработанный\nагент?) is (да)
+    if (агент жив?) then (да)
+      if (Plant?) then (да)
+        :changeEnergy(+2);
+        if (energy <= 0?) then (да)
+          :die();
+        endif
+      else (Herbivore)
+        :eat(env);
+        if (удалось съесть\nрастение?) then (нет)
+          :changeEnergy(-1);
+          if (energy <= 0?) then (да)
+            :die();
+          else (нет)
+            :decideMove(visionField);
+            :moveAgent(agent, direction);
+          endif
+        endif
+      endif
+    endif
+  endwhile (нет)
+}
+
+:removeDead()\n(удалить погибших агентов);
+:spawnNewAgents()\n(попытка размножения агентов\nс energy > energyLimit);
+stop
+@enduml

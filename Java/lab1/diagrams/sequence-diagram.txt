@@ -1,0 +1,40 @@
+@startuml SequenceDiagram
+actor Пользователь as User
+participant MainFrame
+participant ControlPanel
+participant Environment
+participant Agent as "Agent (Predator/Herbivore/Plant)"
+participant GridPanel
+
+User -> ControlPanel : нажать кнопку "Шаг"
+ControlPanel -> MainFrame : onStep() callback
+MainFrame -> MainFrame : stepOnce()
+MainFrame -> Environment : tick()
+
+loop для каждого хищника
+    Environment -> Agent : act(env)
+    Agent -> Environment : getVisionField(this, radius)
+    Environment --> Agent : Cell[][] visionField
+    alt рядом есть жертва
+        Agent -> Environment : getAgentByCoords(x, y)
+        Environment --> Agent : victim
+        Agent -> Agent : tryEat(env, victim)
+    else жертвы нет
+        Agent -> Agent : decideMove(visionField)
+        Agent -> Environment : moveAgent(agent, direction)
+    end
+end
+
+loop для остальных агентов
+    Environment -> Agent : act(env)
+end
+
+Environment -> Environment : removeDead()
+Environment -> Environment : spawnNewAgents()
+
+MainFrame -> ControlPanel : updateStats(tickCount, agents)
+MainFrame -> GridPanel : repaint()
+GridPanel -> Environment : getMap()
+Environment --> GridPanel : Agent[][] map
+GridPanel --> User : отрисованная сетка
+@enduml

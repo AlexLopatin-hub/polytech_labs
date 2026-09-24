@@ -1,0 +1,29 @@
+@startuml UseCaseDiagram
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Пользователь" as User
+
+rectangle "Симулятор экосистемы" {
+  usecase "Настроить параметры\nсимуляции (Config)" as UC1
+  usecase "Запустить / приостановить\nсимуляцию" as UC2
+  usecase "Выполнить один шаг\nвручную" as UC3
+  usecase "Сбросить симуляцию" as UC4
+  usecase "Изменить скорость\nсимуляции" as UC5
+  usecase "Просмотреть карту\nагентов (сетку)" as UC6
+  usecase "Просмотреть статистику\n(растения/травоядные/хищники)" as UC7
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+
+UC2 ..> UC3 : <<include>>
+UC4 ..> UC1 : <<include>>
+UC2 ..> UC6 : <<extend>>
+UC2 ..> UC7 : <<extend>>
+@enduml
