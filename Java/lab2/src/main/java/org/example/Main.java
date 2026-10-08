@@ -9,10 +9,11 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         Config config = new Config(
-                10,
-                10,
+                7,
+                7,
                 12,
                 6,
+                -10,
                 100,
                 -100,
                 10e6

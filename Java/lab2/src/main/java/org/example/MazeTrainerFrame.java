@@ -8,14 +8,14 @@ import java.awt.*;
 public class MazeTrainerFrame extends JFrame {
     private final Environment env;
     private final MazePanel mazePanel;
-    private final JSpinner samplesSpinner;
+    private final JSpinner agesSpinner;
     private final JButton trainButton;
     private final JButton demoButton;
     private final JButton stopDemoButton;
     private final JButton resetPolicyButton;
     private final JButton newMazeButton;
     private final JLabel statusLabel;
-    private final JLabel samplesUsedLabel;
+    private final JLabel agesUsedLabel;
     private volatile boolean demoStopRequested;
     private volatile boolean demoFinishedAtCheese;
 
@@ -23,16 +23,16 @@ public class MazeTrainerFrame extends JFrame {
         super("Maze agent trainer");
         this.env = env;
         this.mazePanel = new MazePanel(env);
-        this.samplesSpinner = new JSpinner(new SpinnerNumberModel(5000, 1, 1_000_000, 100));
+        this.agesSpinner = new JSpinner(new SpinnerNumberModel(100, 1, 100_000, 100));
         this.trainButton = new JButton("Обучить");
         this.demoButton = new JButton("Демо");
         this.stopDemoButton = new JButton("Остановить демо");
         this.resetPolicyButton = new JButton("Сбросить политику");
         this.newMazeButton = new JButton("Новый лабиринт");
         this.statusLabel = new JLabel("Готово");
-        this.samplesUsedLabel = new JLabel();
+        this.agesUsedLabel = new JLabel();
         this.stopDemoButton.setEnabled(false);
-        updateSamplesUsedLabel();
+        updateAgesUsedLabel();
 
         buildUi();
         wireActions();
@@ -55,8 +55,8 @@ public class MazeTrainerFrame extends JFrame {
         controls.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        left.add(new JLabel("Сэмплов для обучения:"));
-        left.add(samplesSpinner);
+        left.add(new JLabel("Эпох для обучения:"));
+        left.add(agesSpinner);
         left.add(trainButton);
         left.add(demoButton);
         left.add(stopDemoButton);
@@ -66,15 +66,15 @@ public class MazeTrainerFrame extends JFrame {
         controls.add(left, BorderLayout.CENTER);
         JPanel info = new JPanel(new BorderLayout(12, 0));
         info.add(statusLabel, BorderLayout.WEST);
-        info.add(samplesUsedLabel, BorderLayout.EAST);
+        info.add(agesUsedLabel, BorderLayout.EAST);
         controls.add(info, BorderLayout.SOUTH);
         return controls;
     }
 
     private void wireActions() {
         trainButton.addActionListener(e -> {
-            int samples = (Integer) samplesSpinner.getValue();
-            runWorker("Обучение...", () -> env.learn(samples));
+            int ages = (Integer) agesSpinner.getValue();
+            runWorker("Обучение...", () -> env.learn(ages));
         });
 
         demoButton.addActionListener(e -> {
@@ -91,7 +91,7 @@ public class MazeTrainerFrame extends JFrame {
         resetPolicyButton.addActionListener(e -> {
             env.resetPolicy();
             mazePanel.repaint();
-            updateSamplesUsedLabel();
+            updateAgesUsedLabel();
             setStatus("Политика сброшена");
         });
 
@@ -100,13 +100,13 @@ public class MazeTrainerFrame extends JFrame {
             mazePanel.refreshPreferredSize();
             mazePanel.revalidate();
             mazePanel.repaint();
-            updateSamplesUsedLabel();
+            updateAgesUsedLabel();
             setStatus("Сгенерирован новый лабиринт");
         });
     }
 
     private void runDemo() throws InterruptedException {
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 2000; i++) {
             if (demoStopRequested) {
                 return;
             }
@@ -140,7 +140,7 @@ public class MazeTrainerFrame extends JFrame {
             protected void done() {
                 setControlsEnabled(true);
                 mazePanel.repaint();
-                updateSamplesUsedLabel();
+                updateAgesUsedLabel();
                 try {
                     get();
                     if (demoFinishedAtCheese) {
@@ -166,7 +166,7 @@ public class MazeTrainerFrame extends JFrame {
     }
 
     private void setControlsEnabled(boolean enabled) {
-        samplesSpinner.setEnabled(enabled);
+        agesSpinner.setEnabled(enabled);
         trainButton.setEnabled(enabled);
         demoButton.setEnabled(enabled);
         stopDemoButton.setEnabled(false);
@@ -178,8 +178,8 @@ public class MazeTrainerFrame extends JFrame {
         statusLabel.setText(text);
     }
 
-    private void updateSamplesUsedLabel() {
-        samplesUsedLabel.setText("Использовано семплов: " + env.getTrainingSamples());
+    private void updateAgesUsedLabel() {
+        agesUsedLabel.setText("Пройдено эпох: " + env.getTrainingAges());
     }
 
     @FunctionalInterface

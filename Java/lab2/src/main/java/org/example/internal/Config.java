@@ -5,6 +5,7 @@ public record Config(
         int cols,
         int waterCount,
         int shockCount,
+        double emptyReward,
         double waterReward,
         double shockReward,
         double cheeseReward

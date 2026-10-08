@@ -29,11 +29,12 @@ public class Maze {
 
     public boolean isFree(int r, int c) { return inside(r, c) && grid[r][c] != CellType.WALL; }
 
-    public double reward(int r, int c, double x, double y, double z) {
+    public double reward(int r, int c, double x, double y, double z, double e) {
         return switch (grid[r][c]) {
             case WATER -> x;
             case SHOCK -> y;
             case CHEESE -> z;
+            case EMPTY -> e;
             default -> 0;
         };
     }

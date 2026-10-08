@@ -15,6 +15,7 @@ public class Environment {
         this.waterCount = envConfig.waterCount();
         this.shockCount = envConfig.shockCount();
 
+        this.emptyReward = envConfig.emptyReward();
         this.waterReward = envConfig.waterReward();
         this.shockReward = envConfig.shockReward();
         this.cheeseReward = envConfig.cheeseReward();
@@ -44,6 +45,7 @@ public class Environment {
     private final int waterCount;
     private final int shockCount;
 
+    private final double emptyReward;
     private final double waterReward;
     private final double shockReward;
     private final double cheeseReward;
@@ -54,11 +56,19 @@ public class Environment {
     public Policy agentPolicy;
     public Agent agent;
     private boolean[][] visited;
-    private long trainingSamples;
+    private long trainingAges;
 
+    public synchronized void runAge(int samplesLimit) {
+        for (int i = 0; i < samplesLimit; i++) {
+            this.step();
+        }
+
+        this.trainingAges++;
+        this.reset();
+    }
     public synchronized void step() {
         boolean[] availableActions = availableActions();
-        if (!hasAvailableAction(availableActions)) {
+        if (numOfAvailableActions(availableActions) == 1) {
             reset();
             return;
         }
@@ -73,7 +83,8 @@ public class Environment {
                 newState.c,
                 this.waterReward,
                 this.shockReward,
-                this.cheeseReward
+                this.cheeseReward,
+                this.emptyReward
         );
 
         this.agent.setState(newState);
@@ -100,20 +111,20 @@ public class Environment {
         this.maze.setGrid(mazeGrid.clone());
     }
 
-    public synchronized void learn(int samples) {
-        if (samples < 0) return;
+    public synchronized void learn(int ages) {
+        if (ages < 0) return;
 
-        for (int i = 0; i < samples; i++) {
-            this.step();
+        for (int i = 0; i < ages; i++) {
+            this.runAge(2000);
         }
-        this.trainingSamples += samples;
+
         this.reset();
     }
 
     public synchronized void resetPolicy() {
         this.agentPolicy = new Policy(this.maze.height, this.maze.width);
         this.agentPolicy.reset();
-        this.trainingSamples = 0;
+        this.trainingAges = 0;
         this.maze.setGrid(mazeGrid.clone());
         this.agent = new Agent(
                 new State(this.maze.startR, this.maze.startC),
@@ -169,8 +180,8 @@ public class Environment {
         return this.maze.width;
     }
 
-    public synchronized long getTrainingSamples() {
-        return this.trainingSamples;
+    public synchronized long getTrainingAges() {
+        return this.trainingAges;
     }
 
     private boolean[] availableActions() {
@@ -179,7 +190,7 @@ public class Environment {
         for (Action action : Action.values()) {
             int row = state.r + action.dr;
             int col = state.c + action.dc;
-            available[action.ordinal()] = maze.isFree(row, col) && !visited[row][col];
+            available[action.ordinal()] = maze.isFree(row, col); // && !visited[row][col];
         }
         return available;
     }
@@ -191,5 +202,15 @@ public class Environment {
             }
         }
         return false;
+    }
+
+    private int numOfAvailableActions(boolean[] availableActions) {
+        int counter = 0;
+        for (boolean available : availableActions) {
+            if (available) {
+                counter++;
+            }
+        }
+        return counter;
     }
 }
