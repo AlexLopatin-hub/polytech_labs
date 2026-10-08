@@ -36,7 +36,6 @@ public class Environment {
         this.visited = new boolean[this.maze.height][this.maze.width];
         this.visited[this.maze.startR][this.maze.startC] = true;
 
-        // making deep copy of maze
         this.mazeGrid = this.maze.getGrid();
     }
 
@@ -49,14 +48,15 @@ public class Environment {
     private final double shockReward;
     private final double cheeseReward;
 
-    private final CellType[][] mazeGrid;
+    private CellType[][] mazeGrid;
 
     public Maze maze;
     public Policy agentPolicy;
     public Agent agent;
     private boolean[][] visited;
+    private long trainingSamples;
 
-    public void step() {
+    public synchronized void step() {
         boolean[] availableActions = availableActions();
         if (!hasAvailableAction(availableActions)) {
             reset();
@@ -87,7 +87,7 @@ public class Environment {
         return new State(state.r + action.dr, state.c + action.dc);
     }
 
-    public void reset() {
+    public synchronized void reset() {
         State oldState = new State(this.agent.getState().r, this.agent.getState().c);
         State startState = new State(this.maze.startR, this.maze.startC);
 
@@ -100,13 +100,77 @@ public class Environment {
         this.maze.setGrid(mazeGrid.clone());
     }
 
-    public void learn(int samples) {
+    public synchronized void learn(int samples) {
         if (samples < 0) return;
 
         for (int i = 0; i < samples; i++) {
             this.step();
         }
+        this.trainingSamples += samples;
         this.reset();
+    }
+
+    public synchronized void resetPolicy() {
+        this.agentPolicy = new Policy(this.maze.height, this.maze.width);
+        this.agentPolicy.reset();
+        this.trainingSamples = 0;
+        this.maze.setGrid(mazeGrid.clone());
+        this.agent = new Agent(
+                new State(this.maze.startR, this.maze.startC),
+                this.agentPolicy
+        );
+
+        this.visited = new boolean[this.maze.height][this.maze.width];
+        this.visited[this.maze.startR][this.maze.startC] = true;
+    }
+
+    public synchronized void generateNewMaze() {
+        this.maze = new MazeGenerator().generate(
+                this.rows,
+                this.cols,
+                this.waterCount,
+                this.shockCount
+        );
+        this.mazeGrid = this.maze.getGrid();
+        this.agent = new Agent(
+                new State(this.maze.startR, this.maze.startC),
+                this.agentPolicy
+        );
+
+        this.visited = new boolean[this.maze.height][this.maze.width];
+        this.visited[this.maze.startR][this.maze.startC] = true;
+    }
+
+    public synchronized CellType[][] getMazeSnapshot() {
+        return this.maze.getGrid();
+    }
+
+    public synchronized boolean[][] getVisitedSnapshot() {
+        boolean[][] result = new boolean[this.visited.length][];
+        for (int i = 0; i < this.visited.length; i++) {
+            result[i] = this.visited[i].clone();
+        }
+        return result;
+    }
+
+    public synchronized int getAgentRow() {
+        return this.agent.getState().r;
+    }
+
+    public synchronized int getAgentCol() {
+        return this.agent.getState().c;
+    }
+
+    public synchronized int getMazeHeight() {
+        return this.maze.height;
+    }
+
+    public synchronized int getMazeWidth() {
+        return this.maze.width;
+    }
+
+    public synchronized long getTrainingSamples() {
+        return this.trainingSamples;
     }
 
     private boolean[] availableActions() {

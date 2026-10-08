@@ -14,6 +14,14 @@ public class Policy {
     private final double discountFactor = 0.5;
     private final double learningRate = 0.5;
 
+    public void reset() {
+        for (double[][] rows : Q) {
+            for (double[] row : rows) {
+                Arrays.fill(row, 0);
+            }
+        }
+    }
+
     private void normalize(double[] arr) {
         double sum = Arrays.stream(arr).sum();
 
@@ -80,5 +88,4 @@ public class Policy {
     };
 
 }
-
 
