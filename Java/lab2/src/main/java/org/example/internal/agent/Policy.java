@@ -55,10 +55,7 @@ public class Policy {
                     actionIDs.add(i);
                 }
             }
-
-            actionID = actionIDs.get(new Random().nextInt(actionIDs.size()));
-
-//            System.out.println(Arrays.toString(variants) + " -> " + actionID);
+            // System.out.println(Arrays.toString(variants) + " -> " + actionID);
         } else {
             // epsilon-greedy
             for (int i = 0; i < allowedActions.length; i++) {
@@ -66,8 +63,8 @@ public class Policy {
                     actionIDs.add(i);
                 }
             }
-            actionID = actionIDs.get(new Random().nextInt(actionIDs.size()));
         }
+        actionID = actionIDs.get(new Random().nextInt(actionIDs.size()));
 
         return Action.actionFromID(actionID);
     };

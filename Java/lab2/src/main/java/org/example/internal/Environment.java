@@ -66,9 +66,10 @@ public class Environment {
         this.trainingAges++;
         this.reset();
     }
+
     public synchronized void step() {
         boolean[] availableActions = availableActions();
-        if (numOfAvailableActions(availableActions) == 1) {
+        if (!hasAvailableAction(availableActions)) {
             reset();
             return;
         }
@@ -204,13 +205,13 @@ public class Environment {
         return false;
     }
 
-    private int numOfAvailableActions(boolean[] availableActions) {
-        int counter = 0;
-        for (boolean available : availableActions) {
-            if (available) {
-                counter++;
-            }
-        }
-        return counter;
-    }
+//    private int numOfAvailableActions(boolean[] availableActions) {
+//        int counter = 0;
+//        for (boolean available : availableActions) {
+//            if (available) {
+//                counter++;
+//            }
+//        }
+//        return counter;
+//    }
 }
