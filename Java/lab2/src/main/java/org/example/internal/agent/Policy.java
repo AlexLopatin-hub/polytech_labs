@@ -77,7 +77,7 @@ public class Policy {
         double[] Qs = this.Q[oldState.r][oldState.c];
         double[] Qs2 = this.Q[newState.r][newState.c];
 
-        double maxQs2 = 0;
+        double maxQs2 = Double.NEGATIVE_INFINITY;
         for (double v : Qs2) {
             if (v > maxQs2) {
                 maxQs2 = v;

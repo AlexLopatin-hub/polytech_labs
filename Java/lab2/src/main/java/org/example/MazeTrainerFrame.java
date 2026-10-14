@@ -106,6 +106,7 @@ public class MazeTrainerFrame extends JFrame {
     }
 
     private void runDemo() throws InterruptedException {
+        env.reset();
         for (int i = 0; i < 2000; i++) {
             if (demoStopRequested) {
                 return;
