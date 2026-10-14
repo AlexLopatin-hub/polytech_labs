@@ -1,0 +1,226 @@
+@startuml
+title Диаграмма классов
+skinparam classAttributeIconSize 0
+set namespaceSeparator none
+
+package "org.example" {
+  class Main {
+    + {static} main(args : String[]) : void
+  }
+
+  class MazeTrainerFrame {
+    - env : Environment
+    - mazePanel : MazePanel
+    - agesSpinner : JSpinner
+    - trainButton : JButton
+    - demoButton : JButton
+    - stopDemoButton : JButton
+    - resetPolicyButton : JButton
+    - newMazeButton : JButton
+    - statusLabel : JLabel
+    - agesUsedLabel : JLabel
+    - demoStopRequested : boolean
+    - demoFinishedAtCheese : boolean
+    + MazeTrainerFrame(env : Environment)
+    - buildUi() : void
+    - buildControls() : JPanel
+    - wireActions() : void
+    - runDemo() : void
+    - runWorker(status : String, task : WorkerTask) : void
+    - setControlsEnabled(enabled : boolean) : void
+    - setStatus(text : String) : void
+    - updateAgesUsedLabel() : void
+  }
+
+  interface WorkerTask <<functional>> {
+    + run() : void
+  }
+
+  class MazePanel {
+    - env : Environment
+    + MazePanel(env : Environment)
+    + refreshPreferredSize() : void
+    # paintComponent(g : Graphics) : void
+  }
+}
+
+class JFrame <<javax.swing>>
+class JPanel <<javax.swing>>
+hide JFrame members
+hide JPanel members
+
+package "org.example.internal" {
+  class Config <<record>> {
+    + rows : int
+    + cols : int
+    + waterCount : int
+    + shockCount : int
+    + emptyReward : double
+    + waterReward : double
+    + shockReward : double
+    + cheeseReward : double
+    + discountFactor : double
+    + learningRate : double
+  }
+
+  class Environment {
+    - rows : int
+    - cols : int
+    - waterCount : int
+    - shockCount : int
+    - emptyReward : double
+    - waterReward : double
+    - shockReward : double
+    - cheeseReward : double
+    - discountFactor : double
+    - learningRate : double
+    - mazeGrid : CellType[][]
+    - visited : boolean[][]
+    - trainingAges : long
+    + maze : Maze
+    + agentPolicy : Policy
+    + agent : Agent
+    + Environment(envConfig : Config)
+    + runAge(samplesLimit : int) : void
+    + step() : boolean
+    + reset() : void
+    + learn(ages : int) : void
+    + resetPolicy() : void
+    + generateNewMaze() : void
+    + getMazeSnapshot() : CellType[][]
+    + getVisitedSnapshot() : boolean[][]
+    + getAgentRow() : int
+    + getAgentCol() : int
+    + getMazeHeight() : int
+    + getMazeWidth() : int
+    + getTrainingAges() : long
+    - calculateNewState(s : State, a : Action) : State
+    - availableActions() : boolean[]
+    - hasAvailableAction(av : boolean[]) : boolean
+  }
+}
+
+package "org.example.internal.agent" {
+  class Agent {
+    - state : State
+    + policy : Policy
+    + Agent(s : State, policy : Policy)
+    + getState() : State
+    + setState(newState : State) : void
+    + selectAction(allowedActions : boolean[]) : Action
+    + updatePolicy(oldState : State, newState : State,\n  actionID : int, reward : double) : void
+  }
+
+  class Policy {
+    + Q : double[][][]
+    - discountFactor : double
+    - learningRate : double
+    + Policy(r : int, c : int, discountFactor : double,\n  learningRate : double)
+    + reset() : void
+    + selectAction(state : State) : Action
+    + selectAction(state : State, allowedActions : boolean[]) : Action
+    + update(oldState : State, newState : State,\n  actionID : int, reward : double) : void
+    - normalize(arr : double[]) : void
+  }
+
+  class State {
+    + r : int
+    + c : int
+    + State(r : int, c : int)
+  }
+
+  enum Action {
+    UP
+    RIGHT
+    DOWN
+    LEFT
+    --
+    + dr : int
+    + dc : int
+    + {static} actionFromID(actionID : int) : Action
+  }
+}
+
+package "org.example.internal.maze" {
+  class Maze {
+    + rows : int
+    + cols : int
+    + height : int
+    + width : int
+    - grid : CellType[][]
+    + startR : int
+    + startC : int
+    + cheeseR : int
+    + cheeseC : int
+    + Maze(rows : int, cols : int)
+    ~ get(r : int, c : int) : CellType
+    ~ set(r : int, c : int, t : CellType) : void
+    + inside(r : int, c : int) : boolean
+    + isFree(r : int, c : int) : boolean
+    + reward(r : int, c : int, x : double, y : double,\n  z : double, e : double) : double
+    + setAgentPosition(oldState : State, newState : State) : void
+    + getGrid() : CellType[][]
+    + setGrid(newGrid : CellType[][]) : void
+    + toString() : String
+  }
+
+  class MazeGenerator {
+    - rnd : Random
+    + MazeGenerator(seed : long)
+    + MazeGenerator()
+    + generate(rows : int, cols : int, waterCount : int,\n  shockCount : int) : Maze
+    - carvePassages(maze : Maze) : void
+    - scatter(maze : Maze, type : CellType, count : int) : void
+  }
+}
+
+package "org.example.internal.models" {
+  enum CellType {
+    WALL
+    EMPTY
+    CHEESE
+    WATER
+    SHOCK
+    MOUSE
+    --
+    + symbol : char
+  }
+
+  class Cell <<record>> {
+    + content : CellType
+  }
+}
+
+MazeTrainerFrame --|> JFrame
+MazePanel --|> JPanel
+MazeTrainerFrame "1" *-- "1" MazePanel
+MazeTrainerFrame +-- WorkerTask
+MazeTrainerFrame --> Environment
+MazePanel --> Environment
+MazePanel ..> CellType
+
+Main ..> Config : создаёт
+Main ..> Environment : создаёт
+Main ..> MazeTrainerFrame : создаёт
+
+Environment ..> Config : читает
+Environment "1" o-- "1" Maze
+Environment "1" o-- "1" Agent
+Environment "1" o-- "1" Policy
+Environment ..> MazeGenerator : использует
+Environment ..> Action
+Environment ..> State
+Environment ..> CellType
+
+Agent "1" *-- "1" State
+Agent "1" o-- "1" Policy
+Policy ..> State
+Policy ..> Action
+
+MazeGenerator ..> Maze : создаёт
+Maze "1" *-- "*" CellType
+Maze ..> State
+MazeGenerator ..> CellType
+Cell o-- CellType
+note right of Cell : не используется в коде
+@enduml

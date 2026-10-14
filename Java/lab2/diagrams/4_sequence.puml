@@ -1,0 +1,71 @@
+@startuml
+title Диаграмма взаимодействий (последовательности)
+actor Пользователь as User
+participant Main
+participant MazeTrainerFrame as Frame
+participant SwingWorker as Worker
+participant Environment as Env
+participant MazeGenerator as Gen
+participant Maze
+participant Agent
+participant Policy
+participant MazePanel as Panel
+
+== Инициализация ==
+Main -> Env : new Environment(config)
+activate Env
+Env -> Gen : generate(rows, cols, waterCount, shockCount)
+Gen --> Env : maze
+Env -> Policy : new Policy(height, width, γ, α)
+Env -> Agent : new Agent(startState, policy)
+Env --> Main : env
+deactivate Env
+Main -> Frame : new MazeTrainerFrame(env)
+Main -> Frame : setVisible(true)
+
+== Обучение ==
+User -> Frame : нажать «Обучить»
+Frame -> Worker : runWorker(...) / execute()
+activate Worker
+Worker -> Env : learn(ages)
+activate Env
+loop для каждой эпохи
+  Env -> Env : runAge(2000)
+  loop пока step() возвращает true (не более 2000 шагов)
+    Env -> Maze : isFree(r, c) для каждого направления
+    Env -> Agent : selectAction(availableActions)
+    Agent -> Policy : selectAction(state, allowedActions)
+    Policy --> Agent : action
+    Agent --> Env : action
+    Env -> Maze : reward(r', c', ...)
+    Maze --> Env : reward
+    Env -> Agent : setState(newState)
+    Env -> Maze : setAgentPosition(oldState, newState)
+    Env -> Agent : updatePolicy(oldState, newState, actionID, reward)
+    Agent -> Policy : update(oldState, newState, actionID, reward)
+  end
+  Env -> Env : reset()
+end
+Env --> Worker
+deactivate Env
+Worker --> Frame : done()
+deactivate Worker
+Frame -> Panel : repaint()
+Panel -> Env : getMazeSnapshot(), getVisitedSnapshot()
+Env --> Panel : grid, visited
+
+== Демонстрация ==
+User -> Frame : нажать «Демо»
+Frame -> Worker : runWorker(...) / execute()
+activate Worker
+loop до сыра, остановки или 2000 шагов
+  Worker -> Env : step()
+  Worker ->> Panel : repaint() через invokeLater
+  Panel -> Env : getMazeSnapshot(), getVisitedSnapshot()
+  Worker -> Env : getAgentRow(), getAgentCol()
+  Worker -> Worker : Thread.sleep(150)
+end
+Worker --> Frame : done()
+deactivate Worker
+Frame --> User : статус «мышь достигла сыра»
+@enduml

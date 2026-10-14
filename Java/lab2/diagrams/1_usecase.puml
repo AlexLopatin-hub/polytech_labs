@@ -1,0 +1,44 @@
+@startuml
+title Диаграмма прецедентов: Мышь в лабиринте
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Пользователь" as User
+actor "Агент (мышь)" as Mouse
+
+rectangle "Приложение «Maze agent trainer»" {
+  usecase "Задать конфигурацию\n(размер, награды, γ, α)" as UC1
+  usecase "Сгенерировать лабиринт" as UC2
+  usecase "Расставить сыр, воду\nи электроловушки" as UC3
+  usecase "Обучить агента\n(N эпох)" as UC4
+  usecase "Выбрать действие\n(ε-жадная стратегия)" as UC5
+  usecase "Получить подкрепление\n(награда / штраф)" as UC6
+  usecase "Обновить Q-таблицу" as UC7
+  usecase "Запустить демонстрацию" as UC8
+  usecase "Остановить демонстрацию" as UC9
+  usecase "Сбросить политику" as UC10
+  usecase "Создать новый лабиринт" as UC11
+  usecase "Наблюдать визуализацию\nи число пройденных эпох" as UC12
+}
+
+User --> UC1
+User --> UC4
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+
+UC1 ..> UC2 : <<include>>
+UC11 ..> UC2 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC4 ..> UC5 : <<include>>
+UC4 ..> UC6 : <<include>>
+UC8 ..> UC5 : <<include>>
+UC8 ..> UC6 : <<include>>
+UC6 ..> UC7 : <<include>>
+UC9 ..> UC8 : <<extend>>
+
+Mouse --> UC5
+Mouse --> UC6
+@enduml

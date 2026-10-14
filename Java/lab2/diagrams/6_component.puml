@@ -1,0 +1,39 @@
+@startuml
+title Диаграмма компонентов
+skinparam componentStyle uml2
+
+actor Пользователь as User
+
+package "org.example" {
+  component "Main" as Main
+  component "GUI\n(MazeTrainerFrame, MazePanel)" as GUI
+}
+
+package "org.example.internal" {
+  component "Среда\n(Environment, Config)" as Env
+
+  package "agent" {
+    component "Агент\n(Agent, Policy, State, Action)" as AgentC
+  }
+  package "maze" {
+    component "Лабиринт\n(Maze, MazeGenerator)" as MazeC
+  }
+  package "models" {
+    component "Модели\n(CellType, Cell)" as Models
+  }
+}
+
+component "Java Swing\n(javax.swing, java.awt)" as Swing <<library>>
+
+User --> GUI
+Main --> GUI : создаёт окно
+Main --> Env : создаёт по Config
+GUI --> Env : learn, step, resetPolicy,\ngenerateNewMaze, снимки состояния
+GUI ..> Models
+GUI ..> Swing
+Env --> AgentC
+Env --> MazeC
+Env ..> Models
+MazeC ..> Models
+MazeC ..> AgentC : State
+@enduml

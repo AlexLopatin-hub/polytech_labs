@@ -1,0 +1,39 @@
+@startuml
+title Диаграмма состояний приложения и агента
+
+[*] --> Init
+state "Инициализация\n(лабиринт, Q-таблица, агент)" as Init
+state "Готово\n(кнопки доступны)" as Ready
+state "Демонстрация" as Demo
+state "Сброс политики" as ResetPolicy
+state "Новый лабиринт" as NewMaze
+
+Init --> Ready : окно показано
+Ready --> Training : «Обучить»
+Ready --> Demo : «Демо»
+Ready --> ResetPolicy : «Сбросить политику»
+Ready --> NewMaze : «Новый лабиринт»
+Training --> Ready : выполнено N эпох
+Demo --> Ready : сыр достигнут,\nостановка или 2000 шагов
+ResetPolicy --> Ready
+NewMaze --> Ready
+Ready --> [*] : закрытие окна
+
+state "Обучение" as Training {
+  [*] --> Select
+  state "Выбор действия\n(ε-жадный, ε = 0.1)" as Select
+  state "Перемещение мыши" as Move
+  state "Получение подкрепления\n(вода, ток, сыр, пусто)" as Reinforce
+  state "Обновление Q(s, a)" as Update
+  state "Конец эпохи\n(сброс среды)" as EndAge
+
+  Select --> Move : есть доступное действие
+  Select --> EndAge : нет доступных действий
+  Move --> Reinforce
+  Reinforce --> Update
+  Update --> Select : не сыр, шагов < 2000
+  Update --> EndAge : сыр или 2000 шагов
+  EndAge --> Select : эпох меньше N
+  EndAge --> [*] : эпох N
+}
+@enduml
