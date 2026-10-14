@@ -20,6 +20,9 @@ public class Environment {
         this.shockReward = envConfig.shockReward();
         this.cheeseReward = envConfig.cheeseReward();
 
+        this.discountFactor = envConfig.discountFactor();
+        this.learningRate = envConfig.learningRate();
+
         this.maze = new MazeGenerator().generate(
                 this.rows,
                 this.cols,
@@ -27,7 +30,12 @@ public class Environment {
                 this.shockCount
         );
 
-        this.agentPolicy = new Policy(this.maze.height, this.maze.width);
+        this.agentPolicy = new Policy(
+                this.maze.height,
+                this.maze.width,
+                this.discountFactor,
+                this.learningRate
+        );
 
         this.agent = new Agent(
                 new State(this.maze.startR, this.maze.startC),
@@ -50,6 +58,9 @@ public class Environment {
     private final double shockReward;
     private final double cheeseReward;
 
+    private final double discountFactor;
+    private final double learningRate;
+
     private CellType[][] mazeGrid;
 
     public Maze maze;
@@ -60,18 +71,20 @@ public class Environment {
 
     public synchronized void runAge(int samplesLimit) {
         for (int i = 0; i < samplesLimit; i++) {
-            this.step();
+            boolean ok = this.step();
+            if (!ok) {
+                break;
+            }
         }
 
         this.trainingAges++;
         this.reset();
     }
 
-    public synchronized void step() {
+    public synchronized boolean step() {
         boolean[] availableActions = availableActions();
         if (!hasAvailableAction(availableActions)) {
-            reset();
-            return;
+            return false;
         }
 
         Action action = this.agent.selectAction(availableActions);
@@ -93,6 +106,12 @@ public class Environment {
         this.visited[newState.r][newState.c] = true;
 
         agent.updatePolicy(oldState, newState, action.ordinal(), reward);
+
+        if (newState.r == maze.cheeseR && newState.c == maze.cheeseC) {
+            return false;
+        }
+
+        return true;
     }
 
     private State calculateNewState(State state, Action action) {
@@ -123,7 +142,12 @@ public class Environment {
     }
 
     public synchronized void resetPolicy() {
-        this.agentPolicy = new Policy(this.maze.height, this.maze.width);
+        this.agentPolicy = new Policy(
+                this.maze.height,
+                this.maze.width,
+                this.discountFactor,
+                this.learningRate
+        );
         this.agentPolicy.reset();
         this.trainingAges = 0;
         this.maze.setGrid(mazeGrid.clone());

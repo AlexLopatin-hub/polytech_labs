@@ -5,14 +5,17 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Policy {
-    public Policy(int r, int c) {
+    public Policy(int r, int c, double discountFactor, double learningRate) {
         Q = new double[r][c][4];
+
+        this.discountFactor = discountFactor;
+        this.learningRate = learningRate;
     }
 
     public double[][][] Q;    // [x][c][direction]
 
-    private final double discountFactor = 0.5;
-    private final double learningRate = 0.5;
+    private final double discountFactor;
+    private final double learningRate;
 
     public void reset() {
         for (double[][] rows : Q) {

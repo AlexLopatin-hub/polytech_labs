@@ -16,7 +16,9 @@ public class Main {
                 -10,
                 100,
                 -100,
-                10e6
+                10e6,
+                0.9,
+                0.5
         );
 
         SwingUtilities.invokeLater(() -> {

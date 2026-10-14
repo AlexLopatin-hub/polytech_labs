@@ -8,5 +8,7 @@ public record Config(
         double emptyReward,
         double waterReward,
         double shockReward,
-        double cheeseReward
+        double cheeseReward,
+        double discountFactor,
+        double learningRate
 ) {}
