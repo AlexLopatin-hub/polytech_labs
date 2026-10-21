@@ -23,7 +23,7 @@ public class MazeTrainerFrame extends JFrame {
         super("Maze agent trainer");
         this.env = env;
         this.mazePanel = new MazePanel(env);
-        this.agesSpinner = new JSpinner(new SpinnerNumberModel(100, 1, 100_000, 100));
+        this.agesSpinner = new JSpinner(new SpinnerNumberModel(1_000, 1, 100_000, 1000));
         this.trainButton = new JButton("Обучить");
         this.demoButton = new JButton("Демо");
         this.stopDemoButton = new JButton("Остановить демо");
