@@ -23,6 +23,9 @@ public class Environment {
         this.discountFactor = envConfig.discountFactor();
         this.learningRate = envConfig.learningRate();
 
+        this.maxReward = Double.NEGATIVE_INFINITY;
+        this.sumReward = 0;
+
         this.maze = new MazeGenerator().generate(
                 this.rows,
                 this.cols,
@@ -61,6 +64,10 @@ public class Environment {
     private final double discountFactor;
     private final double learningRate;
 
+    public double sumReward;
+    public double lastReward;
+    public double maxReward;
+
     private CellType[][] mazeGrid;
 
     public Maze maze;
@@ -70,6 +77,8 @@ public class Environment {
     private long trainingAges;
 
     public synchronized void runAge(int samplesLimit) {
+        this.lastReward = 0;
+
         for (int i = 0; i < samplesLimit; i++) {
             boolean ok = this.step();
             if (!ok) {
@@ -78,6 +87,8 @@ public class Environment {
         }
 
         this.trainingAges++;
+        this.sumReward += this.lastReward;
+        this.maxReward = Math.max(this.maxReward, this.lastReward);
         this.reset();
     }
 
@@ -100,6 +111,8 @@ public class Environment {
                 this.cheeseReward,
                 this.emptyReward
         );
+
+        this.lastReward += reward;
 
         this.agent.setState(newState);
         this.maze.setAgentPosition(oldState, newState);
@@ -139,9 +152,16 @@ public class Environment {
         }
 
         this.reset();
+        System.out.printf("AGES %d-%d\navgReward: %.2f\nmaxReward: %.0f\nlastReward: %.0f\n\n",
+                this.trainingAges - ages + 1, this.trainingAges, this.sumReward / this.trainingAges,
+                this.maxReward, this.lastReward);
     }
 
     public synchronized void resetPolicy() {
+        this.maxReward = Double.NEGATIVE_INFINITY;
+        this.sumReward = 0;
+        this.lastReward = 0;
+
         this.agentPolicy = new Policy(
                 this.maze.height,
                 this.maze.width,
