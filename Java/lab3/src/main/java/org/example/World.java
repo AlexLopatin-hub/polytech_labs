@@ -56,7 +56,7 @@ public final class World {
     public Percept sense(Position p, boolean bump, boolean scream, boolean hasGold) {
         List<Position> neighbors = p.neighbors(size);
         return new Percept(wampusAlive && neighbors.contains(wampus), neighbors.stream().anyMatch(pits::contains),
-                !hasGold && (gold.equals(p) || neighbors.contains(gold)), bump, scream);
+                !hasGold && gold.equals(p), bump, scream);
     }
 
     public boolean shoot(Position origin, Direction direction) {

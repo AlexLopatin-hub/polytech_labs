@@ -15,6 +15,7 @@ public final class KnowledgeBase {
     private final Set<Position> certainPits = new LinkedHashSet<>();
     private final Set<Position> possiblePits = new LinkedHashSet<>();
     private final Set<Position> wampusCandidates = new LinkedHashSet<>();
+    private final Set<Position> deadWampusCandidates = new LinkedHashSet<>();
     private final Set<Position> goldCandidates = new LinkedHashSet<>();
     private boolean goldObserved;
     private boolean goldCollected;
@@ -34,12 +35,10 @@ public final class KnowledgeBase {
         noPit.add(p); noWampus.add(p);
         List<Position> neighbors = p.neighbors(size);
         if (!goldCollected) {
-            Set<Position> glitterArea = new LinkedHashSet<>(neighbors);
-            glitterArea.add(p);
             if (percept.glitter()) {
                 goldObserved = true;
-                goldCandidates.retainAll(glitterArea);
-            } else goldCandidates.removeAll(glitterArea);
+                goldCandidates.clear(); goldCandidates.add(p);
+            } else goldCandidates.remove(p);
         }
         if (!percept.breeze()) noPit.addAll(neighbors);
         else pitClauses.add(new LinkedHashSet<>(neighbors));
@@ -56,8 +55,13 @@ public final class KnowledgeBase {
     }
 
     public void shot(Position origin, Direction direction, boolean scream) {
-        if (scream) wampusDead = true;
-        else for (Position p = origin.move(direction); p.inside(size); p = p.move(direction)) noWampus.add(p);
+        if (scream) {
+            wampusDead = true;
+            for (Position p = origin.move(direction); p.inside(size); p = p.move(direction)) {
+                if (wampusCandidates.contains(p)) deadWampusCandidates.add(p);
+            }
+            if (deadWampusCandidates.size() == 1) noPit.addAll(deadWampusCandidates);
+        } else for (Position p = origin.move(direction); p.inside(size); p = p.move(direction)) noWampus.add(p);
         infer();
     }
 
@@ -75,8 +79,13 @@ public final class KnowledgeBase {
         wampusCandidates.removeAll(certainPits);
         if (!goldCollected) {
             goldCandidates.removeAll(certainPits);
-            Position wampus = knownWampus();
-            if (wampus != null) goldCandidates.retainAll(wampus.neighbors(size));
+            Set<Position> guards = wampusDead ? deadWampusCandidates
+                    : knownWampus() == null ? Set.of() : Set.of(knownWampus());
+            if (!guards.isEmpty()) {
+                Set<Position> nearby = new LinkedHashSet<>();
+                for (Position guard : guards) nearby.addAll(guard.neighbors(size));
+                goldCandidates.retainAll(nearby);
+            }
         }
         if (!wampusDead && wampusCandidates.size() == 1 && noPit.addAll(wampusCandidates)) infer();
     }
@@ -98,18 +107,40 @@ public final class KnowledgeBase {
                 ? goldCandidates.iterator().next() : null;
     }
     public boolean possibleGold(Position p) {
-        return goldObserved && !goldCollected && goldCandidates.contains(p);
+        return (goldObserved || goldSearchKnown()) && !goldCollected && goldCandidates.contains(p);
+    }
+    public boolean goldSearchKnown() {
+        return knownWampus() != null || !deadWampusCandidates.isEmpty();
+    }
+    public Position wampusLocation() {
+        return wampusDead ? deadWampusCandidates.size() == 1 ? deadWampusCandidates.iterator().next() : null
+                : knownWampus();
     }
     public String goldMark(Position p) {
-        if (!goldObserved || !goldCandidates.contains(p)) return "";
+        if ((!goldObserved && !goldSearchKnown()) || !goldCandidates.contains(p)) return "";
         if (goldCollected) return "G✓";
-        return goldCandidates.size() == 1 ? "G" : "G?";
+        return goldObserved ? "G" : "G?";
     }
     public boolean visited(Position p) { return observations.containsKey(p); }
     public Percept observation(Position p) { return observations.get(p); }
     public boolean wampusDead() { return wampusDead; }
     public boolean safe(Position p) {
         return noPit.contains(p) && (wampusDead || !wampusCandidates.contains(p));
+    }
+    public boolean certainDanger(Position p) {
+        return certainPits.contains(p) || p.equals(knownWampus());
+    }
+    public double riskScore(Position p) {
+        if (certainDanger(p)) return Double.POSITIVE_INFINITY;
+        double pitRisk = noPit.contains(p) ? 0.0 : 0.2;
+        if (!noPit.contains(p)) for (Set<Position> clause : pitClauses) {
+            if (!clause.contains(p)) continue;
+            long candidates = clause.stream().filter(candidate -> !noPit.contains(candidate)).count();
+            if (candidates > 0) pitRisk = Math.max(pitRisk, 1.0 / candidates);
+        }
+        double wampusRisk = !wampusDead && wampusCandidates.contains(p)
+                ? 1.0 / wampusCandidates.size() : 0.0;
+        return 1.0 - (1.0 - pitRisk) * (1.0 - wampusRisk);
     }
     public Position knownWampus() {
         return !wampusDead && wampusCandidates.size() == 1 ? wampusCandidates.iterator().next() : null;
@@ -134,9 +165,10 @@ public final class KnowledgeBase {
         for (Set<Position> clause : unique) result.add("Ветерок ⇒ хотя бы одна яма среди " + clause);
         result.add("Нет ям: " + noPit);
         result.add("Доказанные ямы: " + certainPits);
-        if (goldObserved) result.add(goldCollected ? "Золото собрано в " + goldCandidates
-                : "Золото " + (goldCandidates.size() == 1 ? "найдено в " : "возможно в ") + goldCandidates);
-        result.add(wampusDead ? "Вампус мёртв: подтверждено криком." : "Единственный Вампус находится среди " + wampusCandidates);
+        if (goldObserved || goldSearchKnown()) result.add(goldCollected ? "Золото собрано в " + goldCandidates
+                : "Золото " + (goldObserved ? "найдено в " : "возможно в ") + goldCandidates);
+        result.add(wampusDead ? "Вампус мёртв: подтверждено криком. Положение: " + deadWampusCandidates
+                : "Единственный Вампус находится среди " + wampusCandidates);
         return result;
     }
 }

@@ -1,7 +1,6 @@
 package org.example;
 
 import javax.swing.JPanel;
-import javax.swing.ToolTipManager;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,7 +8,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.event.MouseEvent;
 
 @SuppressWarnings("serial")
 public final class BoardPanel extends JPanel {
@@ -20,7 +18,6 @@ public final class BoardPanel extends JPanel {
         this.knowledgeView = knowledgeView;
         setBackground(Color.WHITE);
         setPreferredSize(new Dimension(440, 440));
-        ToolTipManager.sharedInstance().registerComponent(this);
     }
     public void update(Game game) { this.game = game; repaint(); }
 
@@ -83,13 +80,4 @@ public final class BoardPanel extends JPanel {
         g.dispose();
     }
 
-    @Override public String getToolTipText(MouseEvent event) {
-        if (game == null || cell <= 0 || event.getX() < left || event.getY() < top) return null;
-        Position p = new Position((event.getY() - top) / cell, (event.getX() - left) / cell);
-        if (!p.inside(game.world().size())) return null;
-        Percept observation = game.knowledge().observation(p);
-        String gold = game.knowledge().goldMark(p);
-        return p + ": " + game.knowledge().mark(p) + (gold.isEmpty() ? "" : " | Золото: " + gold)
-                + (observation == null ? "" : " | " + observation.russian());
-    }
 }

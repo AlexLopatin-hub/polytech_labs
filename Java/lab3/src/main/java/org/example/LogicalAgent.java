@@ -32,11 +32,43 @@ public final class LogicalAgent {
 
         if (kb.wampusDead()) {
             Position goldStep = firstStep(kb, position, p -> !kb.visited(p) && kb.possibleGold(p));
-            if (goldStep != null) return move(position, goldStep, direction, "Проверяю ближайшее возможное местоположение золота.");
+            if (goldStep != null) return move(position, goldStep, direction, "Ищу золото в соседних с Вампусом комнатах.");
+            if (kb.goldSearchKnown()) {
+                Decision search = risk(kb, position, direction, kb::possibleGold);
+                if (search.action() != null) return search;
+            }
         }
         Position step = firstStep(kb, position, p -> !kb.visited(p));
         if (step != null) return move(position, step, direction, "Исследую ближайшую доказанно безопасную комнату.");
-        return new Decision(null, "Безопасных новых ходов и доказанного выстрела нет. Охотник в тупике.");
+        return risk(kb, position, direction, p -> true);
+    }
+
+    private Decision risk(KnowledgeBase kb, Position start, Direction direction, Predicate<Position> goal) {
+        Queue<Position> queue = new ArrayDeque<>();
+        Map<Position, Position> firstSteps = new HashMap<>();
+        queue.add(start); firstSteps.put(start, null);
+        Position target = null, selectedStep = null;
+        double bestRisk = Double.POSITIVE_INFINITY;
+        while (!queue.isEmpty()) {
+            Position p = queue.remove();
+            for (Position next : p.neighbors(kb.size())) {
+                Position first = p.equals(start) ? next : firstSteps.get(p);
+                if (kb.safe(next)) {
+                    if (!firstSteps.containsKey(next)) {
+                        firstSteps.put(next, first); queue.add(next);
+                    }
+                } else if (!kb.visited(next) && !kb.certainDanger(next) && goal.test(next)) {
+                    double score = kb.riskScore(next);
+                    if (score < bestRisk) {
+                        bestRisk = score; target = next; selectedStep = first;
+                    }
+                }
+            }
+        }
+        if (selectedStep == null) return new Decision(null, "Все доступные выходы ведут в доказанную опасность. Охотник в тупике.");
+        String reason = selectedStep.equals(target) ? "Риск: проверяю неизвестную комнату " + target
+                : "Иду по безопасным комнатам к месту рискованного перехода в " + target;
+        return move(start, selectedStep, direction, reason);
     }
 
     private boolean aligned(Position a, Position b) {

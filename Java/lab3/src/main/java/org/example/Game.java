@@ -74,6 +74,8 @@ public final class Game {
             status = Status.STUCK;
             log.add("Тупик. Симуляция завершена: " + decision.explanation());
         } else {
+            if (decision.action() == Action.FORWARD && !knowledge.safe(position.move(direction)))
+                log.add("Рискованный ход. " + decision.explanation());
             act(decision.action());
         }
         return decision;
