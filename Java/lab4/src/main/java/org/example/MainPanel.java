@@ -68,7 +68,7 @@ public class MainPanel extends JPanel {
         add(bottom, BorderLayout.SOUTH);
         timer = new Timer(30, event -> animate());
         newGraph.addActionListener(event -> {
-            seed++;
+            seed = System.currentTimeMillis();
             reset();
         });
         reset.addActionListener(event -> reset());
