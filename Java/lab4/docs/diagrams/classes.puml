@@ -1,0 +1,50 @@
+@startuml
+class Main {
++main(args)
+}
+class MainPanel {
+-colony: Colony
+-animate()
+-completeCycle()
+-reset()
+}
+class GraphPanel {
+-colony: Colony
++setColony(colony)
+#paintComponent(g)
+}
+class Colony {
+~nodes: List<Node>
+~edges: Edge[][]
+~ants: List<Ant>
+~bestLength: double
++prepareIteration()
++finishIteration()
++runIteration()
+}
+class Ant {
+~route: List<Integer>
+~length: double
++chooseNext(...)
++move(...)
++buildRoute(...)
+}
+class Edge {
+~length: double
+~pheromone: double
+}
+class Node <<record>> {
+-id: int
+-x: double
+-y: double
++distanceTo(other)
+}
+Main ..> MainPanel
+MainPanel --> "1" Colony
+MainPanel --> "1" GraphPanel
+GraphPanel --> "1" Colony
+Colony --> "*" Ant
+Colony --> "*" Edge
+Colony --> "*" Node
+Edge --> "2" Node
+@enduml

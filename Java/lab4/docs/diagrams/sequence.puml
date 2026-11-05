@@ -1,0 +1,19 @@
+@startuml
+actor Пользователь
+participant MainPanel
+participant Colony
+participant Ant
+participant GraphPanel
+Пользователь -> MainPanel: Старт
+MainPanel -> Colony: prepareIteration()
+loop для каждого муравья
+Colony -> Ant: buildRoute(...)
+Ant --> Colony: route, length
+end
+loop кадры Timer
+MainPanel -> GraphPanel: repaint()
+end
+MainPanel -> Colony: finishIteration()
+Colony --> MainPanel: bestRoute, bestLength
+MainPanel -> GraphPanel: repaint()
+@enduml

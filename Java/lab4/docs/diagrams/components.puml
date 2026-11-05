@@ -1,0 +1,16 @@
+@startuml
+component "Запуск
+Main.java" as M
+component "Интерфейс
+MainPanel.java
+GraphPanel.java" as UI
+component "Модель алгоритма
+Colony, Ant, Edge, Node" as Model
+component "Java SE 21
+Swing, AWT, java.util" as J
+M ..> UI: создаёт
+UI ..> Model: использует
+UI ..> J
+Model ..> J
+artifact "lab4.jar"
+@enduml
