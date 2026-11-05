@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 
 public class MainPanel extends JPanel {
     final GraphPanel graph = new GraphPanel();
+    final AverageChartPanel chart = new AverageChartPanel();
     final JSpinner nodeCount = new JSpinner(new SpinnerNumberModel(8, 4, 12, 1));
     final JSpinner cycles = new JSpinner(new SpinnerNumberModel(200, 1, 1000, 10));
     final JSlider speed = new JSlider(1, 20, 5);
@@ -13,7 +14,7 @@ public class MainPanel extends JPanel {
     final JButton step = new JButton("Один цикл");
     final JButton finish = new JButton("Завершить");
     final JLabel statistics = new JLabel();
-    final JLabel route = new JLabel("Лучший маршрут: —");
+    final JTextArea route = new JTextArea(3, 20);
     final Timer timer;
     Colony colony;
     private long seed = System.currentTimeMillis();
@@ -22,7 +23,10 @@ public class MainPanel extends JPanel {
     public MainPanel() {
         super(new BorderLayout(5, 5));
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        JPanel settings = new JPanel();
+        JPanel settings = new JPanel(new GridLayout(3, 2, 5, 4));
+        settings.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Параметры"),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         settings.add(new JLabel("Города:"));
         settings.add(nodeCount);
         settings.add(new JLabel("Циклы:"));
@@ -32,19 +36,36 @@ public class MainPanel extends JPanel {
         settings.add(speed);
         JButton newGraph = new JButton("Новый граф");
         JButton reset = new JButton("Сброс");
-        settings.add(newGraph);
-        settings.add(reset);
-        settings.add(start);
-        settings.add(step);
-        settings.add(finish);
-        add(settings, BorderLayout.NORTH);
+        JPanel controls = new JPanel(new GridLayout(2, 3, 5, 4));
+        controls.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Управление"),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        controls.add(newGraph);
+        controls.add(reset);
+        controls.add(start);
+        controls.add(step);
+        controls.add(finish);
         add(graph, BorderLayout.CENTER);
-        JPanel info = new JPanel(new GridLayout(4, 1, 0, 4));
+        JPanel info = new JPanel(new GridLayout(2, 1, 0, 4));
+        info.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Информация"),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        info.setPreferredSize(new java.awt.Dimension(300, 90));
+        route.setEditable(false);
+        route.setOpaque(false);
+        route.setLineWrap(true);
+        route.setWrapStyleWord(true);
+        route.setFont(statistics.getFont());
         info.add(statistics);
         info.add(route);
-        info.add(new JLabel("Синий — феромон; зелёный — лучший маршрут; оранжевый — муравьи."));
-        info.add(new JLabel("α = 1; β = 3; ρ = 0,35; Q = 100. Расстояния — евклидовы, в условных единицах."));
-        add(info, BorderLayout.SOUTH);
+        JPanel results = new JPanel(new BorderLayout(8, 0));
+        results.add(info, BorderLayout.WEST);
+        results.add(chart, BorderLayout.CENTER);
+        JPanel bottom = new JPanel(new BorderLayout(8, 0));
+        bottom.add(settings, BorderLayout.WEST);
+        bottom.add(controls, BorderLayout.CENTER);
+        bottom.add(results, BorderLayout.EAST);
+        add(bottom, BorderLayout.SOUTH);
         timer = new Timer(30, event -> animate());
         newGraph.addActionListener(event -> {
             seed++;
@@ -80,6 +101,7 @@ public class MainPanel extends JPanel {
         pause();
         colony = new Colony(Colony.createNodes((int) nodeCount.getValue(), seed), seed);
         graph.setColony(colony);
+        chart.setColony(colony);
         prepared = false;
         updateLabels();
     }
@@ -118,14 +140,15 @@ public class MainPanel extends JPanel {
         graph.showAnts = false;
         updateLabels();
         graph.repaint();
+        chart.repaint();
     }
 
     void updateLabels() {
-        String lengths = colony.iteration == 0 ? "Лучший путь: —"
-                : String.format("Лучший путь: %.4f | Средний за цикл: %.4f",
+        String lengths = colony.iteration == 0 ? "Лучший путь: —<br>Средний за цикл: —"
+                : String.format("Лучший путь: %.4f<br>Средний за цикл: %.4f",
                 colony.bestLength, colony.averageLength);
-        statistics.setText("Цикл: " + colony.iteration + " / " + cycles.getValue()
-                + " | Муравьёв: " + colony.nodes.size() * 3 + " | " + lengths);
-        route.setText("Лучший маршрут: " + (colony.bestRoute.isEmpty() ? "—" : colony.routeText()));
+        statistics.setText("<html>Цикл: " + colony.iteration + " / " + cycles.getValue()
+                + " | Муравьёв: " + colony.nodes.size() * 3 + "<br>" + lengths + "</html>");
+        route.setText("Лучший маршрут:\n" + (colony.bestRoute.isEmpty() ? "—" : colony.routeText()));
     }
 }

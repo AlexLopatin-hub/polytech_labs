@@ -13,6 +13,7 @@ public class Colony {
     final Edge[][] edges;
     final List<Ant> ants = new ArrayList<>();
     final List<Double> history = new ArrayList<>();
+    final List<Double> averageHistory = new ArrayList<>();
     private final Random random;
     List<Integer> bestRoute = new ArrayList<>();
     double bestLength = Double.POSITIVE_INFINITY;
@@ -77,6 +78,7 @@ public class Colony {
         averageLength /= ants.size();
         iteration++;
         history.add(bestLength);
+        averageHistory.add(averageLength);
     }
 
     public void runIteration() {
